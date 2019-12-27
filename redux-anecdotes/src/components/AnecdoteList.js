@@ -1,5 +1,7 @@
 import React from 'react';
-import { voteAnecdote } from '../reducers/anecdoteReducer'
+import { connect } from "react-redux";
+import { voteAnecdote } from '../reducers/anecdoteReducer';
+import { setAnecdoteVotedNotification, removeNotification } from "../reducers/notificationReducer";
 
 const Anecdote = ({content, votes, handleClick}) => {
   return (
@@ -17,29 +19,43 @@ const Anecdote = ({content, votes, handleClick}) => {
   )
 }
 
-
 const AnecdoteList = (props) => {
-  const { store } = props;
 
-  // const vote = (id) => {
-  //   store.dispatch({
-  //     type: 'VOTE',
-  //     data: { id }
-  //   })
-  // }
-/// sdf
+  const clickListener = (anecdote) => {
+    props.voteAnecdote(anecdote.id);
+    props.setAnecdoteVotedNotification(anecdote.content);
+    // should reset the timeout if one is running and new vote is cast, not completely correct this way
+    setTimeout(() => { props.removeNotification() }, 5000);
+  }
+
   return (
     <ul>
-      {store.getState().map(anecdote => 
+      {props.anecdotes.map(anecdote => 
         <Anecdote
           key={anecdote.id}
           content={anecdote.content}
           votes={anecdote.votes}
-          handleClick={ () => store.dispatch(voteAnecdote(anecdote.id))}
-        />  
+          handleClick={() => clickListener(anecdote)}
+        />
       )}
     </ul>
   )
 };
 
-export default AnecdoteList;
+const mapStateToProps = (state) => {
+  console.log(state);
+  return {
+    anecdotes: state.anecdotes,
+  }
+};
+
+const mapDispatchToProps = {
+  voteAnecdote,
+  setAnecdoteVotedNotification,
+  removeNotification,
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AnecdoteList);
